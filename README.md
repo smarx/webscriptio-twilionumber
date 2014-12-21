@@ -35,9 +35,9 @@ The URL format for the script below must be in the form *&lt;subdomain>.webscrip
 The script below requires an `AreaCode` query parameter and does the following:
 
 1. If a number *was* found previously (based on the `alreadyFound` storage variable), the script exits with a simple message that a number was already found.
-1. If a number was *not* found previously, the script queries the Twilio API for available numbers within `AreaCode`.
-1. If an available number is *not* found, the script exits with a simple mesage that no numbers are available.
-1. If an available number *is* found, the script buys an available number within `AreaCode`, sets `alreadyFound` to `true`, then alerts the Webscript account owner with an SMS message.
+2. If a number was *not* found previously, the script queries the Twilio API for available numbers within `AreaCode`.
+3. If an available number is *not* found, the script exits with a simple mesage that no numbers are available.
+4. If an available number *is* found, the script buys an available number within `AreaCode`, sets `alreadyFound` to `true`, then alerts the Webscript account owner with an SMS message.
 
 ## Code
 
@@ -55,21 +55,17 @@ end
 local twilioSid = 'YOUR_TWILIO_ACCOUNT_SID'
 local twilioToken = 'YOUR_TWILIO_AUTH_TOKEN'
 
-local twilio = require( 'clstokes/webscriptio-twilionumber/main' )
+local twilio = require('clstokes/webscriptio-twilionumber/main')
 
-local numbers = twilio.getNumbers( twilioSid, twilioToken, areaCode )
+local boughtNumber = twilio.buyNumber(twilioSid, twilioToken, areaCode)
 
-local count = table.getn( numbers.available_phone_numbers )
-
-if count > 0 then
-  local boughtNumber = twilio.buyNumber( twilioSid, twilioToken, areaCode )
-
+if boughtNumber then
   local txt = 'Just bought '..boughtNumber.friendly_name..'. Go twilio!'
   storage.alreadyFound = true
-  alert.sms( txt )
-  return txt
+  alert.sms(txt)
+else
+  local txt = '*No* phone numbers are available in the '..areaCode..' area code.'
 end
 
-local txt = '*No* phone numbers are available in the '..areaCode..' area code.'
 return txt
 ```
